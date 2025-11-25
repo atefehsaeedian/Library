@@ -27,6 +27,11 @@ services:
     environment:
       - DEBUG=True
       - SECRET_KEY=your-super-secret-production-key
+      - POSTGRES_DB=library_db
+      - POSTGRES_USER=library_user
+      - POSTGRES_PASSWORD=librarypass123
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
     depends_on:
       - db
       - redis

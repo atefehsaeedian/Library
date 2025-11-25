@@ -1,5 +1,4 @@
 from pathlib import Path
-from django.conf.global_settings import STATICFILES_DIRS, STATIC_ROOT, MEDIA_URL, MEDIA_ROOT
 from datetime import timedelta
 import os
 from urllib.parse import urlparse
@@ -9,7 +8,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$4xf=&a7_2+k-f7xggy$pb&x0y_i0xwlgxqlm@hgw#6am!v_5g')
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 
@@ -82,9 +84,28 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# ==========================================
+# REDIS CACHE & SESSION CONFIGURATION (NEW)
+# ==========================================
 
+# تنظیمات کش برای اتصال به سرویس Redis در داکر
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # نام هاست 'redis' همان نام سرویس در فایل docker-compose است
+        "LOCATION": os.getenv('REDIS_URL', "redis://redis:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# استفاده از Redis برای ذخیره سشن‌ها (بسیار سریع‌تر از دیتابیس)
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -102,8 +123,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -114,17 +133,16 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# Static & Media
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/'
