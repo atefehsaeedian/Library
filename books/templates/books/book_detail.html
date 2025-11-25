@@ -1,0 +1,85 @@
+<!-- templates/books/book_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - Online Library{% endblock %}
+
+{% block content %}
+<div class="row g-5">
+    <div class="col-lg-4">
+        {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" class="img-fluid rounded shadow" alt="{{ book.title }} cover">
+        {% else %}
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded shadow"
+                 style="height: 500px;">
+                <h4>No Cover Available</h4>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-8">
+        <h1 class="display-5 fw-bold">{{ book.title }}</h1>
+        <p class="lead text-muted">
+            <strong>Author:</strong> {{ book.author }} •
+            <strong>Published:</strong> {{ book.publication_year }}
+        </p>
+
+        <hr>
+
+        <h5>Summary</h5>
+        <p>{{ book.summary|default:"No summary available."|linebreaks }}</p>
+
+        {% if show_full_text %}
+            <hr>
+            <h3>Full Book Text</h3>
+            <div class="bg-white p-4 rounded border" style="max-height: 600px; overflow-y: auto;">
+                {{ book.full_text|default:"Full text not provided."|linebreaks }}
+            </div>
+
+            <div class="mt-4">
+                <form method="post" action="{% url 'books:favorite' book.slug %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn {% if is_favorite %}btn-danger{% else %}btn-warning{% endif %} btn-lg">
+                        {% if is_favorite %}
+                            ❤️ Remove from Favorites
+                        {% else %}
+                            🤍 Add to Favorites
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+
+            <h4 class="mt-5">Leave a Comment</h4>
+            <form method="post" action="{% url 'books:add_comment' book.slug %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <textarea name="text" class="form-control" rows="4"
+                              placeholder="Write your comment here..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Post Comment</button>
+            </form>
+        {% else %}
+            <div class="alert alert-warning mt-4">
+                <strong>🔒 This book is locked!</strong><br>
+                Please <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="alert-link">login</a>
+                to read the full text, add to favorites, and leave comments.
+            </div>
+        {% endif %}
+
+        <hr class="my-5">
+        <h4>Comments ({{ book.comments.count }})</h4>
+
+        {% for comment in book.comments.all %}
+            <div class="border-start border-primary border-4 ps-3 py-2 mb-3 bg-light rounded">
+                <strong>{{ comment.user.username }}</strong>
+                <small class="text-muted">— {{ comment.created_at|date:"F d, Y - H:i" }}</small>
+                <p class="mt-2 mb-0">{{ comment.text|linebreaks }}</p>
+            </div>
+        {% empty %}
+            <p class="text-muted">No comments yet. Be the first one to comment!</p>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock %}
