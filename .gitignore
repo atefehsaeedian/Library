@@ -15,11 +15,6 @@ __pycache__/
 *.so
 
 
-Dockerfile*
-docker-compose*.yml
-.dockerignore
-
-
 *.log
 *.pot
 *.pyc
